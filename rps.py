@@ -1,17 +1,16 @@
 import random
 
-valid_moves = ['rock', 'papper', 'scissor']
+valid_moves = ['rock', 'paper', 'scissor']
 
 class Player():
   def __init__(self):
     self.score = 0
-    self.last_opponent_move = None
 
   def play(self):
     return valid_moves[0]
 
   def learn(self, last_opponent_move):
-    self.last_opponent_move = last_opponent_move
+    pass
 
 
 class RandomPlayer(Player):
@@ -21,10 +20,35 @@ class RandomPlayer(Player):
 
 
 class ReflectPlayer(Player):
+  def __init__(self):
+    Player.__init__(self)
+    self.last_opponent_move = None
+
   def play(self):
     if self.last_opponent_move is None:
       return Player.play(self)
     return self.last_opponent_move
+
+  def learn(self, last_opponent_move):
+    self.last_opponent_move = last_opponent_move
+
+
+class CyclePlayer(Player):
+  def __init__(self):
+    Player.__init__(self)
+    self.last_move = None
+
+  def play(self):
+    move = None
+    if self.last_move is None:
+      move = Player.play(self)
+    else:
+      index = valid_moves.index(self.last_move) + 1
+      if index >= len(valid_moves):
+        index = 0
+      move = valid_moves[index]
+    self.last_move = move
+    return move
 
 
 class HumanPlayer(Player):
@@ -38,17 +62,24 @@ class HumanPlayer(Player):
 class Game():
   def __init__(self):
     self.player1 = HumanPlayer()
-    self.player2 = ReflectPlayer()
+    self.player2 = CyclePlayer()
 
-  def start(self):
-    input('Let\'s play Rock, Papper or Scissors!\nPress enter to play\n')
+  def play_match(self):
+    input('Let\'s play Rock, Paper or Scissors!\nPress enter to play\n')
     try:
       while True:
         self.play_round()
         print('The score is: ' + str(self.player1.score) + ' x ' + str(self.player2.score) + '\n')
         input('Press enter to play again or ctrl+C to quit\n')
     except KeyboardInterrupt:
-      print('\nThanks for playing!')
+      print('\n\nThanks for playing!')
+      if self.player1.score > self.player2.score:
+        print('Player 1 won!')
+      elif self.player1.score > self.player2.score:
+        print('Player 2 won!')
+      else:
+        print('The game was a draw!')
+      print('The final score was ' + str(self.player1.score) + ' x ' + str(self.player2.score))
   
   def play_round(self):
       player1_move = self.player1.play()
@@ -81,12 +112,12 @@ class Game():
   def is_move_stronger(cls, move1, move2):
     if (move1 == 'rock' and move2 == 'scissor'):
       return True
-    elif (move1 == 'scissor' and move2 == 'papper'):
+    elif (move1 == 'scissor' and move2 == 'paper'):
       return True
-    elif (move1 == 'papper' and move2 == 'rock'):
+    elif (move1 == 'paper' and move2 == 'rock'):
       return True
     return False
 
 
 game = Game()
-game.start()
+game.play_match()
