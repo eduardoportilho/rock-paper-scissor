@@ -5,9 +5,14 @@ valid_moves = ['rock', 'papper', 'scissor']
 class Player():
   def __init__(self):
     self.score = 0
+    self.last_opponent_move = None
 
   def play(self):
     return valid_moves[0]
+
+  def learn(self, last_opponent_move):
+    self.last_opponent_move = last_opponent_move
+
 
 class RandomPlayer(Player):
   def play(self):
@@ -15,18 +20,25 @@ class RandomPlayer(Player):
     return valid_moves[index]
 
 
+class ReflectPlayer(Player):
+  def play(self):
+    if self.last_opponent_move is None:
+      return Player.play(self)
+    return self.last_opponent_move
+
+
 class HumanPlayer(Player):
   def play(self):
-    player_move = input('Enter your move (rock, papper or scissor):\n')
+    player_move = input('Enter your move (' + ', '.join(valid_moves) + '):\n')
     while player_move not in valid_moves:
-      player_move = input('Invalid move, try again')
+      player_move = input('Invalid move, try again\n')
     return player_move
 
 
 class Game():
   def __init__(self):
-    self.player1 = RandomPlayer()
-    self.player2 = RandomPlayer()
+    self.player1 = HumanPlayer()
+    self.player2 = ReflectPlayer()
 
   def start(self):
     input('Let\'s play Rock, Papper or Scissors!\nPress enter to play\n')
@@ -38,11 +50,14 @@ class Game():
     except KeyboardInterrupt:
       print('\nThanks for playing!')
   
-
   def play_round(self):
       player1_move = self.player1.play()
       player2_move = self.player2.play()
       result = Game.check_result(player1_move, player2_move)
+
+      self.player1.learn(player2_move)
+      self.player2.learn(player1_move)
+      
       print('Player 1 choose "' + player1_move + '" and player 2 choose "' + player2_move + '"')
       if result == 1:
         self.player1.score += 1
@@ -71,6 +86,7 @@ class Game():
     elif (move1 == 'papper' and move2 == 'rock'):
       return True
     return False
+
 
 game = Game()
 game.start()
